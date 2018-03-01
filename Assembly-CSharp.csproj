@@ -96,6 +96,8 @@
      <Compile Include="Assets\_Imported\PostProcessing\Runtime\Utils\MaterialFactory.cs" />
      <Compile Include="Assets\_Imported\PostProcessing\Runtime\Utils\RenderTextureFactory.cs" />
      <Compile Include="Assets\_Imported\PostProcessing\Utilities\CustomMotionTexture\ExampleWheelController.cs" />
+     <Compile Include="Assets\Scripts\CharacterMovement.cs" />
+     <Compile Include="Assets\Scripts\FollowCamera.cs" />
      <None Include="Assets\_Imported\PostProcessing\Resources\Shaders\DepthOfField.shader" />
      <None Include="Assets\_Imported\PostProcessing\Resources\Shaders\MotionBlur.cginc" />
      <None Include="Assets\_Imported\PostProcessing\Resources\Shaders\Fog.shader" />
