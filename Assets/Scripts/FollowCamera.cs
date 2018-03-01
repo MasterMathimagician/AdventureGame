@@ -2,6 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/* Class: FollowCamera
+ * Purpose: to act as a 3rd person camera controller that will work with 
+ * 
+ * 
+*/
+
 public class FollowCamera : MonoBehaviour {
 
 	public Transform lookTo;
