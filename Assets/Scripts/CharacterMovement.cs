@@ -20,10 +20,17 @@ using UnityEngine;
 public class CharacterMovement : MonoBehaviour {
 
 
-	public float jumpPower = 10.0f;
-	public float moveSpeed = 1.5f;
+	public float jumpPower = 3.0f;
+	public float groundMove = 10.0f;
+	public float airMove = 7.0f;
+
+	public float groundForce = 1.0f;
+	public float airForce = 0.7f;
+
 	public float hoverFallSpeed = 0.5f;
+	public float turnSpeed = 50.0f;
 	public int JumpNum = 2;  
+	public bool forces = true;
 
 	private SphereCollider sphere;
 	private GameObject character;
@@ -44,21 +51,37 @@ public class CharacterMovement : MonoBehaviour {
 			canJump = true;
 			jumped = 0;
 		}
+		bool jump = Input.GetButtonDown ("Jump");
+		if (jump && (jumped< JumpNum)) {
+			jumped++;
+			//Vector3 force = new Vector3 (0, jumpPower, 0);
+			//rb.AddForce (force, ForceMode.Impulse);
+
+			rb.AddForce (new Vector3 (0, jumpPower, 0), ForceMode.Impulse);
+			canJump = false;
+		}
+		float x = Input.GetAxis("Horizontal") * Time.deltaTime;
+		float z = Input.GetAxis("Vertical") * Time.deltaTime;
+
+		character.transform.Rotate(0, turnSpeed * x, 0);
+		if (forces) {
+			if (canJump) {
+				rb.AddForce (new Vector3 (0, 0, groundForce * z), ForceMode.VelocityChange);
+
+			} else {
+				rb.AddForce (new Vector3 (0, 0, airForce * z), ForceMode.VelocityChange);
+			}
+		} else {
+			if (canJump) {
+				character.transform.Translate (0, 0, groundMove * z);
+			} else {
+				character.transform.Translate (0, 0, airMove * z);
+			}
+		}
 	}
 
 	// Update is called once per frame
 	void Update () {
-		var x = Input.GetAxis("Horizontal") * Time.deltaTime * 150.0f;
-		var z = Input.GetAxis("Vertical") * Time.deltaTime * 3.0f;
 
-		bool jump = Input.GetButtonDown ("Jump");
-		if (jump && (jumped< JumpNum)) {
-			jumped++;
-			Vector3 force = new Vector3 (0, jumpPower, 0);
-			rb.AddForce (force, ForceMode.Impulse);
-		}
-
-		character.transform.Rotate(0, x, 0);
-		character.transform.Translate(0, 0, z);
 	}
 }
