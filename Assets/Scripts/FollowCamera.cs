@@ -11,7 +11,7 @@ using UnityEngine;
 public class FollowCamera : MonoBehaviour {
 
 	public Transform lookTo;
-	public float distance = 2.7f;
+	public float distance = 4.0f;
 	public float height = 1.5f;
 	public float damping = 5.0f;
 	public bool smoothRotation = true;
