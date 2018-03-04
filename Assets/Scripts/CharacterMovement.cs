@@ -26,16 +26,24 @@ public class CharacterMovement : MonoBehaviour {
 	private int jumped = 0;
 	private float fallingSpeed = 0.0f;
 	private float gravity = -0.1f;
+	private float lastJumped = 0.0f;
+	private float jumpInterval = 0.05f;
 
+	private float moveAngle;
+	private float moveForward;
+	private bool stillJumping=false;
+
+	public float jumpHold = 0.9f;
+	public float jumpDuration = 2.0f;
 	public float hoverTime = 1.0f; 
-	public float hoverFallSpeed = -0.5f;
-	public float turnSpeed = 2.0f;
+	public float hoverFallSpeed = 0.0f;
+	public float turnSpeed = 70.0f;
 	public int JumpNum = 2;  
 	public bool forces = true;
 
-	public float groundMove = 0.2f;
-	public float airMove = 0.14f;
-	public float jumpSpeed = 1.0f;
+	public float groundMove = 10.0f;
+	public float airMove = 7.0f;
+	public float jumpSpeed = 0.3f;
 
 	public float jumpPower = 3.0f;
 	public float groundForce = 0.10f;
@@ -50,22 +58,16 @@ public class CharacterMovement : MonoBehaviour {
 		sphere = GetComponent<SphereCollider> ();
 	}
 
-	void FixedUpdate() {
+	void Update() {
+		canJump =Physics.Raycast(transform.position, - Vector3.up, sphere.bounds.extents.y + 0.1f);
 		// can also use Physics.CheckSphere with some work to determine groundedness of the character but this is simpler
-		if (Physics.Raycast(transform.position, - Vector3.up, sphere.bounds.extents.y + 0.01f)) {
-			canJump = true;
-			jumped = 0;
-		}
 		bool jump = Input.GetButtonDown ("Jump");
+		bool jumping = Input.GetButton ("Jump");
+		bool doneJumping = Input.GetButtonUp ("Jump");
+		bool hover = Input.GetButton ("Fire1");
+		moveAngle = Input.GetAxis("Horizontal") * Time.deltaTime;
+		moveForward = Input.GetAxis("Vertical") * Time.deltaTime;
 
-		// since I switched to fixed update I no longer need to access Time.deltaTime to keep things accurate
-		//float x = Input.GetAxis("Horizontal") * Time.deltaTime;
-		//float z = Input.GetAxis("Vertical") * Time.deltaTime;
-		float x = Input.GetAxis("Horizontal");
-		float z = Input.GetAxis("Vertical");
-
-
-		character.transform.Rotate(0, turnSpeed * x, 0);
 		if (forces) {
 			// section for forces based control
 			if (jump && (jumped< JumpNum)) {
@@ -74,37 +76,52 @@ public class CharacterMovement : MonoBehaviour {
 				canJump = false;
 			}
 			if (canJump) {
-				rb.AddForce (new Vector3 (0, 0, groundForce * z), ForceMode.VelocityChange);
+				rb.AddForce (new Vector3 (0, 0, groundForce * moveForward), ForceMode.VelocityChange);
 			} else {
-				rb.AddForce (new Vector3 (0, 0, airForce * z), ForceMode.VelocityChange);
+				rb.AddForce (new Vector3 (0, 0, airForce * moveForward), ForceMode.VelocityChange);
 			}
 		} else {
 			// section for transform based control 
-			// this if statement sets the falling speed
-			if (jump && (jumped < JumpNum)) {
-				jumped++;
-				canJump = false;
-				fallingSpeed = jumpSpeed;
-				//Debug.Log ("jumped is " + jumped.ToString());
-			}
-			if (Input.GetButtonDown ("Fire1") && !canJump) {
-				fallingSpeed = hoverFallSpeed*Time.deltaTime;
+			// this if statement sets the falling speed and stops downward motion when in contact with the ground
+			if (canJump) {
+				fallingSpeed = Mathf.Max(0.0f, fallingSpeed);
 			} else {
 				fallingSpeed += gravity * Time.deltaTime;
 			}
 
-			if (canJump) {
-				fallingSpeed = 0.0f;
-				character.transform.Translate (0, 0, groundMove * z);
-			} else {
-				fallingSpeed += -1.0f*Time.deltaTime;
-				character.transform.Translate (0, fallingSpeed, airMove * z);
+			float fs = hoverFallSpeed*Time.deltaTime;
+			if (hover && !canJump && (fs >fallingSpeed)) {
+				fallingSpeed = fs;
+			} 
+
+			float timeSinceLastJumped = Time.unscaledTime-lastJumped;
+			if (jump && (jumped < JumpNum)) {
+				float last = Time.unscaledTime-lastJumped;
+				if (last > jumpInterval) {
+					lastJumped = Time.unscaledTime;
+					jumped++;
+					canJump = false;
+					fallingSpeed = jumpSpeed;
+				}
+			} else if (jumping&&stillJumping) {
+				fallingSpeed *= jumpHold * Time.deltaTime;
+			} else if (doneJumping||hover||(timeSinceLastJumped>jumpDuration)){
+				fallingSpeed = (Mathf.Min(0.0f, fallingSpeed)+fallingSpeed)/2;
+				stillJumping = false;
 			}
+		}
+		character.transform.Rotate(0, turnSpeed * moveAngle, 0);
+		if (canJump) {
+			jumped = 0;
+			character.transform.Translate (0, 0, groundMove * moveForward);
+		} else {
+			//Debug.Log ("fallingSpeed is " + fallingSpeed);
+			character.transform.Translate (0, fallingSpeed, airMove * moveForward);
 		}
 	}
 
-	// Update is called once per frame
-	void Update () {
+	void FixedUpdate(){
+
 
 	}
 }

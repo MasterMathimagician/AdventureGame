@@ -24,7 +24,7 @@ public class FollowCamera : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void LateUpdate () {
 		Vector3 wantedPosition;
 		wantedPosition = lookTo.TransformPoint (0, height, -distance);
 
